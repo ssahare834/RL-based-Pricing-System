@@ -30,8 +30,8 @@ class BaselinePricer:
             return np.random.choice(price_points)
         
         elif self.strategy == 'simple_rule':
-            # Simple rule: adjust based on demand
-            demand_level = state[1]  # Normalized demand
+            
+            demand_level = state[1]  
             if demand_level > 0.7:
                 return self.base_price * 1.1
             elif demand_level < 0.3:
@@ -56,7 +56,6 @@ class RLTrainer:
         self.agent_type = agent_type
         self.env = MarketEnvironment(market_config)
         
-        # Initialize agent
         if agent_type == 'qlearning':
             self.agent = QLearningAgent(
                 n_actions=self.env.get_action_dim(),
@@ -99,25 +98,24 @@ class RLTrainer:
         done = False
         
         while not done:
-            # Select and execute action
+           
             action = self.agent.select_action(state, training=True)
             next_state, reward, done, info = self.env.step(action)
             
-            # Store/update
+            
             if self.agent_type == 'dqn':
                 self.agent.store_transition(state, action, reward, next_state, done)
                 self.agent.update()
-            else:  # qlearning
+            else: 
                 self.agent.update(state, action, reward, next_state, done)
             
             episode_reward += reward
             episode_revenue += info['revenue']
             state = next_state
         
-        # Decay epsilon
         self.agent.decay_epsilon()
         
-        # Episode statistics
+        
         episode_stats = {
             'reward': episode_reward,
             'revenue': episode_revenue,
@@ -149,7 +147,7 @@ class RLTrainer:
             self.training_history['episode_avg_demands'].append(stats['avg_demand'])
             self.training_history['epsilon_history'].append(stats['epsilon'])
             
-            # Print progress
+           
             if verbose and (episode + 1) % 10 == 0:
                 avg_reward = np.mean(self.training_history['episode_rewards'][-10:])
                 avg_revenue = np.mean(self.training_history['episode_revenues'][-10:])
@@ -226,10 +224,10 @@ class RLTrainer:
         baseline = BaselinePricer(strategy=baseline_strategy, 
                                  base_price=self.env.config.base_price)
         
-        # Evaluate RL agent
+       
         rl_metrics = self.evaluate(n_episodes)
         
-        # Evaluate baseline
+      
         baseline_rewards = []
         baseline_revenues = []
         
@@ -256,7 +254,7 @@ class RLTrainer:
             'mean_revenue': np.mean(baseline_revenues)
         }
         
-        # Calculate improvement
+        
         reward_improvement = ((rl_metrics['mean_reward'] - baseline_metrics['mean_reward']) / 
                              abs(baseline_metrics['mean_reward']) * 100)
         revenue_improvement = ((rl_metrics['mean_revenue'] - baseline_metrics['mean_revenue']) / 
@@ -286,7 +284,7 @@ def run_comparison_experiment(
     """
     results = {}
     
-    # Train Q-Learning
+    
     print("Training Q-Learning agent...")
     qlearning_trainer = RLTrainer('qlearning', market_config)
     qlearning_trainer.train(n_episodes, verbose=True)
@@ -296,7 +294,7 @@ def run_comparison_experiment(
         'comparison': qlearning_trainer.compare_with_baseline('fixed', 20)
     }
     
-    # Train DQN
+   
     print("\nTraining DQN agent...")
     dqn_trainer = RLTrainer('dqn', market_config)
     dqn_trainer.train(n_episodes, verbose=True)
