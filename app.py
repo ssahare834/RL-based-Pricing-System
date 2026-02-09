@@ -1,6 +1,3 @@
-"""
-Streamlit Dashboard for RL-Based Dynamic Pricing System
-"""
 
 import streamlit as st
 import numpy as np
@@ -16,7 +13,7 @@ from q_learning_agent import QLearningAgent
 from dqn_agent import DQNAgent
 from trainer import RLTrainer, BaselinePricer
 
-# Page configuration
+
 st.set_page_config(
     page_title="RL Dynamic Pricing System",
     page_icon="💰",
@@ -24,7 +21,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+
 st.markdown("""
 <style>
     .main-header {
@@ -118,7 +115,7 @@ def create_training_ui():
             help="Number of episodes for training"
         )
     
-    # Advanced training parameters
+   
     with st.expander("Advanced Training Parameters"):
         col1, col2, col3 = st.columns(3)
         
@@ -133,26 +130,24 @@ def create_training_ui():
         agent_key = agent_type.lower().replace(" ", "_").replace("(", "").replace(")", "")
         
         with st.spinner(f"Training {agent_type} agent..."):
-            # Create trainer
+          
             trainer = RLTrainer(
                 agent_type='qlearning' if 'Q-Learning' in agent_type else 'dqn',
                 market_config=st.session_state.market_config
             )
             
-            # Customize agent parameters
             if hasattr(trainer.agent, 'learning_rate'):
                 trainer.agent.learning_rate = learning_rate
             trainer.agent.gamma = gamma
             trainer.agent.epsilon_decay = epsilon_decay
             
-            # Train
+            
             history = trainer.train(n_episodes, verbose=False)
             
-            # Evaluate
+          
             evaluation = trainer.evaluate(20)
             comparison = trainer.compare_with_baseline('fixed', 20)
             
-            # Store results
             st.session_state.trained_models[agent_key] = {
                 'trainer': trainer,
                 'history': history,
@@ -177,29 +172,25 @@ def plot_training_progress(history: dict, agent_name: str):
     
     episodes = list(range(len(history['episode_rewards'])))
     
-    # Rewards
-    fig.add_trace(
+        fig.add_trace(
         go.Scatter(x=episodes, y=history['episode_rewards'],
                   mode='lines', name='Reward', line=dict(color='#1f77b4')),
         row=1, col=1
     )
     
-    # Revenues
-    fig.add_trace(
+     fig.add_trace(
         go.Scatter(x=episodes, y=history['episode_revenues'],
                   mode='lines', name='Revenue', line=dict(color='#2ca02c')),
         row=1, col=2
     )
     
-    # Prices
-    fig.add_trace(
+     fig.add_trace(
         go.Scatter(x=episodes, y=history['episode_avg_prices'],
                   mode='lines', name='Avg Price', line=dict(color='#ff7f0e')),
         row=2, col=1
     )
     
-    # Epsilon
-    fig.add_trace(
+        fig.add_trace(
         go.Scatter(x=episodes, y=history['epsilon_history'],
                   mode='lines', name='Epsilon', line=dict(color='#d62728')),
         row=2, col=2
@@ -239,8 +230,7 @@ def plot_comparison(models: dict):
         specs=[[{"type": "bar"}, {"type": "bar"}]]
     )
     
-    # Revenue comparison
-    fig.add_trace(
+       fig.add_trace(
         go.Bar(x=model_names, y=revenues, 
                marker_color=['#1f77b4', '#ff7f0e'],
                text=[f'${r:,.0f}' for r in revenues],
@@ -248,8 +238,7 @@ def plot_comparison(models: dict):
         row=1, col=1
     )
     
-    # Improvement comparison
-    colors = ['#2ca02c' if x > 0 else '#d62728' for x in improvements]
+        colors = ['#2ca02c' if x > 0 else '#d62728' for x in improvements]
     fig.add_trace(
         go.Bar(x=model_names, y=improvements,
                marker_color=colors,
@@ -281,8 +270,7 @@ def create_live_simulation():
         st.warning("⚠️ Please train at least one model first!")
         return
     
-    # Model selection
-    model_options = list(st.session_state.trained_models.keys())
+      model_options = list(st.session_state.trained_models.keys())
     selected_model = st.selectbox(
         "Select Model for Simulation",
         [m.replace('_', ' ').title() for m in model_options]
@@ -301,12 +289,11 @@ def create_live_simulation():
             st.session_state.simulation_running = True
     
     if st.session_state.simulation_running:
-        # Run simulation
-        state = trainer.env.reset()
+         state = trainer.env.reset()
         done = False
         step = 0
         
-        # Containers for real-time updates
+        
         metrics_container = st.container()
         chart_container = st.container()
         
@@ -332,8 +319,7 @@ def create_live_simulation():
         
         st.session_state.simulation_running = False
         
-        # Display results
-        with metrics_container:
+             with metrics_container:
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
@@ -345,8 +331,7 @@ def create_live_simulation():
             with col4:
                 st.metric("Avg Revenue/Step", f"${np.mean(revenues_history):.2f}")
         
-        # Plot results
-        with chart_container:
+              with chart_container:
             fig = make_subplots(
                 rows=2, cols=2,
                 subplot_titles=('Price vs Time', 'Demand vs Time',
@@ -356,7 +341,7 @@ def create_live_simulation():
             
             steps = list(range(len(prices_history)))
             
-            # Price
+            
             fig.add_trace(
                 go.Scatter(x=steps, y=prices_history, name='Our Price',
                           line=dict(color='#1f77b4')),
@@ -368,21 +353,21 @@ def create_live_simulation():
                 row=1, col=1
             )
             
-            # Demand
+           
             fig.add_trace(
                 go.Scatter(x=steps, y=demands_history, name='Demand',
                           line=dict(color='#2ca02c')),
                 row=1, col=2
             )
             
-            # Revenue
+           
             fig.add_trace(
                 go.Scatter(x=steps, y=revenues_history, name='Revenue',
                           line=dict(color='#d62728')),
                 row=2, col=1
             )
             
-            # Price-Demand scatter
+           
             fig.add_trace(
                 go.Scatter(x=prices_history, y=demands_history, mode='markers',
                           name='Price-Demand', marker=dict(color='#9467bd', size=5)),
@@ -422,16 +407,16 @@ def create_what_if_simulator():
     with col2:
         st.subheader("Prediction Results")
         
-        # Create environment for prediction
+        
         env = MarketEnvironment(st.session_state.market_config)
         env.current_step = time_of_day
         env.previous_demand = demand_level * env.config.base_demand
         
-        # Calculate predicted demand
+        
         predicted_demand = env._calculate_demand(manual_price, competitor_price)
         predicted_revenue = manual_price * predicted_demand
         
-        # Display metrics
+       
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -442,7 +427,7 @@ def create_what_if_simulator():
             margin = ((manual_price - 30) / manual_price) * 100  # Assuming cost of $30
             st.metric("Profit Margin", f"{margin:.1f}%")
         
-        # Sensitivity analysis
+        
         st.subheader("Price Sensitivity Analysis")
         
         price_range = np.linspace(20, 100, 50)
@@ -454,7 +439,7 @@ def create_what_if_simulator():
             subplot_titles=('Demand Curve', 'Revenue Curve')
         )
         
-        # Demand curve
+      
         fig.add_trace(
             go.Scatter(x=price_range, y=demands, mode='lines',
                       name='Demand', line=dict(color='#2ca02c', width=3)),
@@ -466,7 +451,7 @@ def create_what_if_simulator():
             row=1, col=1
         )
         
-        # Revenue curve
+        
         fig.add_trace(
             go.Scatter(x=price_range, y=revenues, mode='lines',
                       name='Revenue', line=dict(color='#1f77b4', width=3)),
@@ -478,7 +463,7 @@ def create_what_if_simulator():
             row=1, col=2
         )
         
-        # Find optimal price
+        
         optimal_idx = np.argmax(revenues)
         optimal_price = price_range[optimal_idx]
         optimal_revenue = revenues[optimal_idx]
@@ -506,17 +491,16 @@ def main():
     """Main application."""
     initialize_session_state()
     
-    # Header
+    
     st.markdown('<h1 class="main-header">💰 RL Dynamic Pricing System</h1>', 
                 unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Reinforcement Learning for Smart Revenue Optimization</p>', 
                 unsafe_allow_html=True)
     
-    # Sidebar configuration
     market_config = create_market_config_ui()
     st.session_state.market_config = market_config
     
-    # Main tabs
+   
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📊 Dashboard",
         "🎓 Training",
@@ -598,7 +582,7 @@ def main():
             model_key = selected_model.lower().replace(' ', '_')
             data = st.session_state.trained_models[model_key]
             
-            # Exploration vs Exploitation
+          
             st.subheader("🔍 Exploration vs Exploitation")
             
             epsilon_history = data['history']['epsilon_history']
@@ -621,7 +605,7 @@ def main():
             
             st.plotly_chart(fig, use_container_width=True)
             
-            # Performance metrics
+          
             st.subheader("📊 Performance Metrics")
             
             col1, col2, col3, col4 = st.columns(4)
@@ -645,7 +629,7 @@ def main():
     with tab5:
         create_what_if_simulator()
     
-    # Footer
+  
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; color: #666; padding: 1rem;'>
