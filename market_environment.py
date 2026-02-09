@@ -1,7 +1,4 @@
-"""
-Market Environment for Dynamic Pricing RL System
-Simulates realistic customer demand with elasticity, time variations, and competitor effects.
-"""
+
 
 import numpy as np
 from typing import Tuple, Dict, Optional
