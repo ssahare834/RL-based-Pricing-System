@@ -1,7 +1,4 @@
-"""
-Deep Q-Network (DQN) Agent for Dynamic Pricing
-Implements DQN with experience replay and target network.
-"""
+
 
 import numpy as np
 import torch
@@ -29,7 +26,7 @@ class DQNNetwork(nn.Module):
         layers = []
         input_dim = state_dim
         
-        # Hidden layers
+        
         for hidden_dim in hidden_dims:
             layers.extend([
                 nn.Linear(input_dim, hidden_dim),
@@ -38,12 +35,12 @@ class DQNNetwork(nn.Module):
             ])
             input_dim = hidden_dim
         
-        # Output layer
+        
         layers.append(nn.Linear(input_dim, n_actions))
         
         self.network = nn.Sequential(*layers)
         
-        # Initialize weights
+        
         self.apply(self._init_weights)
     
     def _init_weights(self, module):
@@ -136,22 +133,22 @@ class DQNAgent:
         self.batch_size = batch_size
         self.target_update_freq = target_update_freq
         
-        # Device
+       
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        # Networks
+       
         self.policy_net = DQNNetwork(state_dim, n_actions, hidden_dims).to(self.device)
         self.target_net = DQNNetwork(state_dim, n_actions, hidden_dims).to(self.device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
         
-        # Optimizer
+       
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
         
-        # Replay buffer
+      
         self.replay_buffer = ReplayBuffer(buffer_size)
         
-        # Training statistics
+       
         self.training_stats = {
             'episode_rewards': [],
             'episode_revenues': [],
@@ -174,11 +171,11 @@ class DQNAgent:
             Selected action index
         """
         if training and np.random.random() < self.epsilon:
-            # Explore: random action
+           
             action = np.random.randint(self.n_actions)
             self.training_stats['exploration_count'] += 1
         else:
-            # Exploit: best action from policy network
+           
             with torch.no_grad():
                 state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
                 q_values = self.policy_net(state_tensor)
@@ -208,41 +205,41 @@ class DQNAgent:
         if len(self.replay_buffer) < self.batch_size:
             return None
         
-        # Sample batch
+        
         states, actions, rewards, next_states, dones = self.replay_buffer.sample(
             self.batch_size
         )
         
-        # Convert to tensors
+        
         states = torch.FloatTensor(states).to(self.device)
         actions = torch.LongTensor(actions).to(self.device)
         rewards = torch.FloatTensor(rewards).to(self.device)
         next_states = torch.FloatTensor(next_states).to(self.device)
         dones = torch.FloatTensor(dones).to(self.device)
         
-        # Current Q-values
+       
         current_q_values = self.policy_net(states).gather(1, actions.unsqueeze(1))
         
-        # Next Q-values from target network
+        
         with torch.no_grad():
             next_q_values = self.target_net(next_states).max(1)[0]
             target_q_values = rewards + (1 - dones) * self.gamma * next_q_values
         
-        # Compute loss
+       
         loss = nn.MSELoss()(current_q_values.squeeze(), target_q_values)
         
-        # Optimize
+        
         self.optimizer.zero_grad()
         loss.backward()
-        # Gradient clipping
+       
         torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), 1.0)
         self.optimizer.step()
         
-        # Update statistics
+       
         self.training_stats['update_count'] += 1
         self.training_stats['losses'].append(loss.item())
         
-        # Update target network periodically
+        
         if self.training_stats['update_count'] % self.target_update_freq == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
         
