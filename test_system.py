@@ -1,7 +1,4 @@
-"""
-Test script for RL Dynamic Pricing System
-Run this to validate all components work correctly.
-"""
+
 
 import numpy as np
 from market_environment import MarketEnvironment, MarketConfig
@@ -17,13 +14,13 @@ def test_market_environment():
     config = MarketConfig()
     env = MarketEnvironment(config)
     
-    # Test reset
+    
     state = env.reset()
     assert state.shape == (4,), "State shape incorrect"
     print("✓ Environment reset works")
     
-    # Test step
-    action = 7  # Middle price point
+   
+    action = 7  
     next_state, reward, done, info = env.step(action)
     
     assert next_state.shape == (4,), "Next state shape incorrect"
@@ -33,7 +30,7 @@ def test_market_environment():
     assert 'demand' in info, "Info should contain demand"
     print("✓ Environment step works")
     
-    # Test episode
+    
     state = env.reset()
     for _ in range(100):
         action = np.random.randint(env.get_action_dim())
@@ -55,19 +52,19 @@ def test_qlearning_agent():
     
     agent = QLearningAgent(n_actions=15, state_dim=4)
     
-    # Test action selection
+    
     state = np.random.rand(4)
     action = agent.select_action(state)
     assert 0 <= action < 15, "Action out of bounds"
     print("✓ Action selection works")
     
-    # Test update
+    
     next_state = np.random.rand(4)
     td_error = agent.update(state, action, 100.0, next_state, False)
     assert isinstance(td_error, float), "TD error should be float"
     print("✓ Q-value update works")
     
-    # Test epsilon decay
+    
     initial_epsilon = agent.epsilon
     agent.decay_epsilon()
     assert agent.epsilon < initial_epsilon, "Epsilon should decrease"
@@ -80,19 +77,18 @@ def test_dqn_agent():
     
     agent = DQNAgent(state_dim=4, n_actions=15)
     
-    # Test action selection
+    
     state = np.random.rand(4)
     action = agent.select_action(state)
     assert 0 <= action < 15, "Action out of bounds"
     print("✓ Action selection works")
-    
-    # Test storing transitions
+   
     next_state = np.random.rand(4)
     agent.store_transition(state, action, 100.0, next_state, False)
     assert len(agent.replay_buffer) == 1, "Transition not stored"
     print("✓ Transition storage works")
     
-    # Fill buffer
+    
     for _ in range(100):
         s = np.random.rand(4)
         a = np.random.randint(15)
@@ -100,7 +96,6 @@ def test_dqn_agent():
         ns = np.random.rand(4)
         agent.store_transition(s, a, r, ns, False)
     
-    # Test update
     loss = agent.update()
     assert loss is not None, "Update should return loss"
     print("✓ Network update works")
@@ -110,7 +105,7 @@ def test_training():
     """Test training pipeline."""
     print("\nTesting Training Pipeline...")
     
-    # Test Q-Learning training
+   
     print("Training Q-Learning for 10 episodes...")
     qlearning_trainer = RLTrainer('qlearning')
     history = qlearning_trainer.train(10, verbose=False)
@@ -120,7 +115,7 @@ def test_training():
     print(f"  - Final episode reward: {history['episode_rewards'][-1]:.0f}")
     print(f"  - Final episode revenue: ${history['episode_revenues'][-1]:,.0f}")
     
-    # Test DQN training
+    
     print("Training DQN for 10 episodes...")
     dqn_trainer = RLTrainer('dqn')
     history = dqn_trainer.train(10, verbose=False)
@@ -138,7 +133,7 @@ def test_evaluation():
     trainer = RLTrainer('qlearning')
     trainer.train(20, verbose=False)
     
-    # Evaluate
+    
     eval_metrics = trainer.evaluate(5)
     
     assert 'mean_reward' in eval_metrics, "Missing mean_reward"
@@ -147,7 +142,7 @@ def test_evaluation():
     print(f"  - Mean reward: {eval_metrics['mean_reward']:.0f}")
     print(f"  - Mean revenue: ${eval_metrics['mean_revenue']:,.0f}")
     
-    # Comparison
+    
     comparison = trainer.compare_with_baseline('fixed', 5)
     
     assert 'rl_metrics' in comparison, "Missing RL metrics"
