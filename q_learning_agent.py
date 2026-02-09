@@ -1,7 +1,4 @@
-"""
-Q-Learning Agent for Dynamic Pricing
-Implements tabular Q-learning with discrete state-action space.
-"""
+
 
 import numpy as np
 from typing import Dict, Tuple, Optional
@@ -48,10 +45,10 @@ class QLearningAgent:
         self.epsilon_decay = epsilon_decay
         self.n_state_bins = n_state_bins
         
-        # Q-table: dictionary mapping (discretized_state, action) -> Q-value
+     
         self.q_table: Dict[Tuple, np.ndarray] = {}
         
-        # Training statistics
+        
         self.training_stats = {
             'episode_rewards': [],
             'episode_revenues': [],
@@ -72,7 +69,7 @@ class QLearningAgent:
         """
         discretized = []
         for i, s in enumerate(state):
-            # Clip to [0, 1] range and discretize
+            
             s_clipped = np.clip(s, 0, 1)
             bin_idx = int(s_clipped * (self.n_state_bins - 1))
             discretized.append(bin_idx)
@@ -90,7 +87,7 @@ class QLearningAgent:
             Array of Q-values for all actions
         """
         if state_key not in self.q_table:
-            # Initialize with small random values
+           
             self.q_table[state_key] = np.random.uniform(0, 0.01, self.n_actions)
         
         return self.q_table[state_key]
@@ -110,11 +107,11 @@ class QLearningAgent:
         q_values = self._get_q_values(state_key)
         
         if training and np.random.random() < self.epsilon:
-            # Explore: random action
+           
             action = np.random.randint(self.n_actions)
             self.training_stats['exploration_count'] += 1
         else:
-            # Exploit: best action
+           
             action = np.argmax(q_values)
             self.training_stats['exploitation_count'] += 1
         
@@ -146,21 +143,21 @@ class QLearningAgent:
         state_key = self._discretize_state(state)
         next_state_key = self._discretize_state(next_state)
         
-        # Get current Q-value
+       
         q_values = self._get_q_values(state_key)
         current_q = q_values[action]
         
-        # Get max Q-value for next state
+      
         if done:
             target_q = reward
         else:
             next_q_values = self._get_q_values(next_state_key)
             target_q = reward + self.gamma * np.max(next_q_values)
         
-        # Calculate TD error
+      
         td_error = target_q - current_q
         
-        # Update Q-value
+       
         q_values[action] += self.learning_rate * td_error
         
         return abs(td_error)
